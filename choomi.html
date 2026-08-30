@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<title>Happy Birthday</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  body {
+    background: #4f9c9a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: Arial, Helvetica, sans-serif;
+    transition: background 1s ease;
+  }
+  body.dim {
+    background: #0d0d0a;
+  }
+
+  .stage {
+    position: relative;
+    width: 340px;
+    height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  /* glow behind the cake once candles are lit */
+  .glow {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,180,60,0.35) 0%, rgba(255,180,60,0) 70%);
+    opacity: 0;
+    transition: opacity 1.2s ease;
+    pointer-events: none;
+  }
+  .glow.show {
+    opacity: 1;
+    animation: glowPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes glowPulse {
+    0%, 100% { transform: scale(1); opacity: 0.85; }
+    50%      { transform: scale(1.1); opacity: 1; }
+  }
+
+  /* the card / box that becomes the cake body */
+  .box {
+    position: relative;
+    width: 240px;
+    height: 100px;
+    background: #f2f2f2;
+    border-radius: 14px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: width 0.9s cubic-bezier(.34,1.56,.64,1),
+                height 0.9s cubic-bezier(.34,1.56,.64,1),
+                border-radius 0.9s cubic-bezier(.4,0,.2,1),
+                transform 0.5s cubic-bezier(.34,1.56,.64,1);
+    transform: scale(0.7);
+  }
+  .box.pop { transform: scale(1); }
+  .box.grow {
+    width: 340px;
+    height: 150px;
+    border-radius: 16px;
+  }
+  .box.idle {
+    animation: floatCake 3s ease-in-out infinite;
+  }
+  @keyframes floatCake {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(-7px) rotate(0.6deg); }
+  }
+
+  /* text */
+  .title {
+    font-size: 26px;
+    font-weight: bold;
+    color: #222;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    transition: opacity 0.4s ease;
+  }
+  .title span {
+    display: inline-block;
+    transition: color 0.3s ease;
+    opacity: 0;
+    transform: translateY(22px) scale(0.2) rotate(-8deg);
+    animation: letterPop 0.65s cubic-bezier(.34,1.56,.64,1) forwards;
+  }
+  @keyframes letterPop {
+    60%  { opacity: 1; transform: translateY(-4px) scale(1.2) rotate(2deg); }
+    100% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+  }
+  .title.fade-out { opacity: 0; }
+
+  /* frosting drip on top of cake */
+  .frosting {
+    position: absolute;
+    top: -6px;
+    left: 0;
+    width: 100%;
+    height: 46px;
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: opacity 0.6s ease, transform 0.6s cubic-bezier(.34,1.56,.64,1);
+    pointer-events: none;
+  }
+  .frosting.show { opacity: 1; transform: translateY(0); }
+
+  /* sprinkles row */
+  .sprinkles {
+    position: absolute;
+    bottom: 14px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-evenly;
+    pointer-events: none;
+  }
+  .sprinkles span {
+    width: 4px;
+    height: 14px;
+    border-radius: 2px;
+    transform: rotate(20deg) translateY(14px) scale(0);
+    opacity: 0;
+  }
+  .sprinkles.show span {
+    animation: sprinklePop 0.45s cubic-bezier(.34,1.56,.64,1) forwards;
+  }
+  @keyframes sprinklePop {
+    to { transform: rotate(20deg) translateY(0) scale(1); opacity: 1; }
+  }
+
+  /* face */
+  .face {
+    position: absolute;
+    top: 52%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+  }
+  .face.show { opacity: 1; }
+  .eyes {
+    display: flex;
+    gap: 38px;
+    margin-bottom: 8px;
+  }
+  .eye {
+    width: 20px;
+    height: 20px;
+    background: #222;
+    border-radius: 50%;
+    position: relative;
+    transform: scaleY(1);
+    transition: transform 0.12s ease;
+  }
+  .eye .shine {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 6px;
+    height: 6px;
+    background: #fff;
+    border-radius: 50%;
+    transition: opacity 0.15s ease;
+  }
+  .eye.blink {
+    transform: scaleY(0.12);
+  }
+  .eye .glyph {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -55%) scale(0);
+    font-size: 28px;
+    font-weight: bold;
+    line-height: 1;
+    color: #222;
+    font-family: Arial, Helvetica, sans-serif;
+    transition: transform 0.2s ease;
+  }
+  .eye.closed {
+    background: transparent;
+  }
+  .eye.closed .shine {
+    opacity: 0;
+  }
+  .eye.closed .glyph {
+    transform: translate(-50%, -55%) scale(1);
+  }
+  .mouth {
+    width: 30px;
+    height: 16px;
+    background: #d94b3a;
+    border-radius: 0 0 16px 16px;
+    transition: all 0.2s ease;
+  }
+  .mouth.flat {
+    width: 22px;
+    height: 4px;
+    background: #222;
+    border-radius: 2px;
+  }
+
+  /* candles */
+  .candles {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 30px;
+    margin-bottom: -6px;
+  }
+  .candle {
+    width: 12px;
+    height: 0px;
+    background: linear-gradient(90deg, #ddd, #fff 40%, #ddd);
+    border-radius: 3px;
+    position: relative;
+    transform-origin: bottom center;
+    transition: height 0.5s cubic-bezier(.34,1.56,.64,1);
+  }
+  .candle.up { height: 60px; }
+  .candle.up.sway:nth-child(1) { animation: swayCandle 1.8s ease-in-out infinite; animation-delay: 0s; }
+  .candle.up.sway:nth-child(2) { animation: swayCandle 1.8s ease-in-out infinite; animation-delay: 0.25s; }
+  .candle.up.sway:nth-child(3) { animation: swayCandle 1.8s ease-in-out infinite; animation-delay: 0.5s; }
+  .candle.up.sway:nth-child(4) { animation: swayCandle 1.8s ease-in-out infinite; animation-delay: 0.15s; }
+  .candle.up.sway:nth-child(5) { animation: swayCandle 1.8s ease-in-out infinite; animation-delay: 0.4s; }
+  @keyframes swayCandle {
+    0%   { transform: rotate(-6deg) skewX(-3deg); }
+    50%  { transform: rotate(7deg) skewX(3deg); }
+    100% { transform: rotate(-6deg) skewX(-3deg); }
+  }
+  .flame {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%) scale(0);
+    width: 14px;
+    height: 22px;
+    background: radial-gradient(circle at 50% 70%, #fff3b0 0%, #ffb703 40%, #fb8500 80%);
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    transition: transform 0.25s ease;
+    transform-origin: bottom center;
+  }
+  .flame.lit { transform: translateX(-50%) scale(1); }
+  .flame.flicker {
+    animation: flameFlicker 0.45s ease-in-out infinite alternate;
+  }
+  @keyframes flameFlicker {
+    0%   { transform: translateX(-50%) scale(1) rotate(-3deg); }
+    50%  { transform: translateX(-50%) scale(1.08) rotate(2deg); }
+    100% { transform: translateX(-50%) scale(0.94) rotate(-1deg); }
+  }
+
+
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+  <div class="glow" id="glow"></div>
+
+  <div class="box pop" id="box">
+    <div class="candles" id="candles">
+      <div class="candle" id="c1"><div class="flame" id="f1"></div></div>
+      <div class="candle" id="c2"><div class="flame" id="f2"></div></div>
+      <div class="candle" id="c3"><div class="flame" id="f3"></div></div>
+      <div class="candle" id="c4"><div class="flame" id="f4"></div></div>
+      <div class="candle" id="c5"><div class="flame" id="f5"></div></div>
+    </div>
+
+    <svg class="frosting" id="frosting" viewBox="0 0 340 46" preserveAspectRatio="none">
+      <path d="M0,0 H340 V16 C330,34 320,4 305,20 C292,34 280,4 265,20
+               C252,34 240,4 225,20 C212,34 200,4 185,20
+               C172,34 160,4 145,20 C132,34 120,4 105,20
+               C92,34 80,4 65,20 C52,34 40,4 25,20 C12,34 6,10 0,16 Z"
+            fill="#5b2fd4"/>
+    </svg>
+
+    <div class="title" id="title">
+      <span style="color:#e6194b; animation-delay:0.02s">H</span><span style="color:#f58231; animation-delay:0.06s">a</span><span style="color:#ffe119; animation-delay:0.10s">p</span><span style="color:#3cb44b; animation-delay:0.14s">p</span><span style="color:#42d4f4; animation-delay:0.18s">y</span><span style="animation-delay:0.20s">&nbsp;</span><span style="color:#4363d8; animation-delay:0.24s">B</span><span style="color:#911eb4; animation-delay:0.28s">i</span><span style="color:#e6194b; animation-delay:0.32s">r</span><span style="color:#f58231; animation-delay:0.36s">t</span><span style="color:#ffe119; animation-delay:0.40s">h</span><span style="color:#3cb44b; animation-delay:0.44s">d</span><span style="color:#42d4f4; animation-delay:0.48s">a</span><span style="color:#4363d8; animation-delay:0.52s">y</span><span style="color:#911eb4; animation-delay:0.56s">!</span>
+    </div>
+
+    <div class="sprinkles" id="sprinkles">
+      <span style="background:#e6194b; animation-delay:0.05s"></span>
+      <span style="background:#42d4f4; animation-delay:0.10s"></span>
+      <span style="background:#911eb4; animation-delay:0.15s"></span>
+      <span style="background:#3cb44b; animation-delay:0.20s"></span>
+      <span style="background:#ffe119; animation-delay:0.25s"></span>
+      <span style="background:#3cb44b; animation-delay:0.30s"></span>
+      <span style="background:#f58231; animation-delay:0.35s"></span>
+      <span style="background:#911eb4; animation-delay:0.40s"></span>
+    </div>
+
+    <div class="face" id="face">
+      <div class="eyes">
+        <div class="eye" id="eyeL"><span class="glyph">&gt;</span><span class="shine"></span></div>
+        <div class="eye" id="eyeR"><span class="glyph">&lt;</span><span class="shine"></span></div>
+      </div>
+      <div class="mouth" id="mouth"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const stage = document.getElementById('stage');
+let played = false;
+let blinkTimer = null;
+
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+function startBlinking(eyeL, eyeR){
+  const loop = () => {
+    const delay = 2200 + Math.random() * 2200;
+    blinkTimer = setTimeout(() => {
+      if (!eyeL.classList.contains('closed')) {
+        eyeL.classList.add('blink');
+        eyeR.classList.add('blink');
+        setTimeout(() => {
+          eyeL.classList.remove('blink');
+          eyeR.classList.remove('blink');
+        }, 130);
+      }
+      loop();
+    }, delay);
+  };
+  loop();
+}
+
+async function playAnimation(){
+  if (played) return;
+  played = true;
+
+  const box = document.getElementById('box');
+  const title = document.getElementById('title');
+  const frosting = document.getElementById('frosting');
+  const sprinkles = document.getElementById('sprinkles');
+  const face = document.getElementById('face');
+  const eyeL = document.getElementById('eyeL');
+  const eyeR = document.getElementById('eyeR');
+  const mouth = document.getElementById('mouth');
+  const glow = document.getElementById('glow');
+  const candles = [document.getElementById('c1'), document.getElementById('c2'), document.getElementById('c3'), document.getElementById('c4'), document.getElementById('c5')];
+  const flames = [document.getElementById('f1'), document.getElementById('f2'), document.getElementById('f3'), document.getElementById('f4'), document.getElementById('f5')];
+
+  // step 2: box grows into cake size
+  box.classList.add('grow');
+  await sleep(750);
+
+  // step 3: fade out text, reveal frosting/sprinkles/face
+  title.classList.add('fade-out');
+  await sleep(300);
+  frosting.classList.add('show');
+  sprinkles.classList.add('show');
+  face.classList.add('show');
+  await sleep(600);
+
+  // start gentle idle floating + blinking once the cake face is alive
+  box.classList.add('idle');
+  startBlinking(eyeL, eyeR);
+
+  // step 4: candles rise (with idle sway once up)
+  candles.forEach(c => c.classList.add('up'));
+  await sleep(500);
+  candles.forEach(c => c.classList.add('sway'));
+  await sleep(300);
+
+  // step 5: eyes squint happily (>_<) ready to blow
+  eyeL.classList.add('closed');
+  eyeR.classList.add('closed');
+  mouth.classList.add('flat');
+  await sleep(500);
+
+  // step 6: light candles one by one, each starts flickering once lit
+  for (const f of [flames[2], flames[1], flames[3], flames[0], flames[4]]) {
+    f.classList.add('lit');
+    await sleep(250);
+    f.classList.add('flicker');
+  }
+  await sleep(200);
+
+  // step 7: reopen eyes to smile, dim background, glow pulses warmly
+  eyeL.classList.remove('closed');
+  eyeR.classList.remove('closed');
+  mouth.classList.remove('flat');
+  document.body.classList.add('dim');
+  glow.classList.add('show');
+}
+
+// "Happy Birthday!" text appears automatically on load (via CSS letterPop).
+// The cake transformation only starts once the user clicks.
+stage.addEventListener('click', playAnimation);
+</script>
+
+</body>
+</html>
